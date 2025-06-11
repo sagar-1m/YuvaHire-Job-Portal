@@ -1,0 +1,44 @@
+{
+  "name": "yuvahire-job-portal-backend",
+  "version": "1.0.0",
+  "description": "Yuvahire job portal backend for backend role internship",
+  "keywords": [
+    "backend",
+    "job",
+    "portal"
+  ],
+  "license": "ISC",
+  "author": "Sagar Maheshwari",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "prisma:format": "prisma format",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.js\" --fix",
+    "lint:report": "eslint \"src/**/*.js\" --output-file eslint-report.json --format json",
+    "format": "prettier --write \"src/**/*.{js,ts,json,md}\""
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "nodemailer": "^7.0.3",
+    "prisma": "^6.9.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
+  }
+}

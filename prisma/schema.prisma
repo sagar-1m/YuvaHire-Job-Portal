@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles
+enum UserRole {
+  ADMIN
+  STUDENT
+}
+
+// Application status
+enum ApplicationStatus {
+  APPLIED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+// Job status
+enum JobStatus {
+  ACTIVE
+  CLOSED
+}
+
+// User table (for both admins and students)
+model User {
+  id                           Int       @id @default(autoincrement())
+  name                         String?
+  email                        String    @unique
+  passwordHash                 String
+  role                         UserRole
+  isVerified                   Boolean   @default(false)
+  emailVerificationToken       String?
+  emailVerificationTokenExpiry DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+
+  // Relations
+  student Student?
+
+  // For refresh tokens (optional)
+  tokens Token[]
+
+  @@map("users")
+}
+
+// College table
+model College {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  students Student[]
+  jobs     Job[]
+
+  @@map("colleges")
+}
+
+// Student table (linked to User and College)
+model Student {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  college   College  @relation(fields: [collegeId], references: [id])
+  collegeId Int
+  profile   Json? // For additional profile fields (flexible)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@map("students")
+}
+
+// Job table
+model Job {
+  id           Int       @id @default(autoincrement())
+  college      College   @relation(fields: [collegeId], references: [id])
+  collegeId    Int
+  title        String
+  description  String
+  requirements String?
+  location     String?
+  status       JobStatus @default(ACTIVE)
+  postedAt     DateTime  @default(now())
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@index([collegeId])
+  @@map("jobs")
+}
+
+// Application table
+model Application {
+  id        Int               @id @default(autoincrement())
+  job       Job               @relation(fields: [jobId], references: [id])
+  jobId     Int
+  student   Student           @relation(fields: [studentId], references: [id])
+  studentId Int
+  resumeUrl String?
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([jobId, studentId])
+  @@index([studentId])
+  @@map("applications")
+}
+
+// Token table (for refresh tokens, optional but recommended)
+model Token {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("tokens")
+}
