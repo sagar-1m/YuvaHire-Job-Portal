@@ -8,13 +8,146 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User roles
+model User {
+  id                           Int                @id @default(autoincrement())
+  name                         String?
+  email                        String             @unique
+  passwordHash                 String
+  role                         UserRole
+  isVerified                   Boolean            @default(false)
+  emailVerificationToken       String?
+  emailVerificationTokenExpiry DateTime?
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+  passwordResetToken           String?
+  passwordResetTokenExpiry     DateTime?
+  student                      Student?
+  admin                        Admin?
+  tokens                       Token[]
+  adminApplications            AdminApplication[]
+  reviewedApplications         AdminApplication[] @relation("ApplicationReviewer")
+
+  @@map("users")
+}
+
+model College {
+  id                 Int                @id @default(autoincrement())
+  name               String
+  location           String
+  website            String?
+  status             CollegeStatus      @default(PENDING)
+  allowedEmailDomain String?
+  address            String?
+  isSystemCollege    Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  jobs               Job[]
+  students           Student[]
+  admins             Admin[]
+  adminApplications  AdminApplication[]
+
+  @@map("colleges")
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  collegeId   Int
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  college     College  @relation(fields: [collegeId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("admins")
+}
+
+model Student {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @unique
+  collegeId    Int
+  profile      Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+  college      College       @relation(fields: [collegeId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+
+  @@map("students")
+}
+
+model Job {
+  id           Int           @id @default(autoincrement())
+  collegeId    Int
+  title        String
+  description  String
+  requirements String?
+  location     String?
+  status       JobStatus     @default(ACTIVE)
+  postedAt     DateTime      @default(now())
+  expiresAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+  college      College       @relation(fields: [collegeId], references: [id])
+
+  @@index([collegeId])
+  @@map("jobs")
+}
+
+model Application {
+  id        Int               @id @default(autoincrement())
+  jobId     Int
+  studentId Int
+  resumeUrl String?
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  job       Job               @relation(fields: [jobId], references: [id])
+  student   Student           @relation(fields: [studentId], references: [id])
+
+  @@unique([jobId, studentId])
+  @@index([studentId])
+  @@map("applications")
+}
+
+model Token {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("tokens")
+}
+
+model AdminApplication {
+  id                     Int                  @id @default(autoincrement())
+  userId                 Int
+  collegeId              Int
+  position               String?
+  verificationDocumentUrl String?
+  status                 AdminApplicationStatus @default(PENDING)
+  reviewedBy             Int?
+  reviewedAt             DateTime?
+  reviewComments         String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  user                   User                 @relation(fields: [userId], references: [id])
+  college                College              @relation(fields: [collegeId], references: [id])
+  reviewer               User?                @relation("ApplicationReviewer", fields: [reviewedBy], references: [id])
+
+  @@map("admin_applications")
+}
+
 enum UserRole {
+  SUPER_ADMIN
   ADMIN
+  PENDING_ADMIN
   STUDENT
 }
 
-// Application status
 enum ApplicationStatus {
   APPLIED
   UNDER_REVIEW
@@ -22,113 +155,19 @@ enum ApplicationStatus {
   REJECTED
 }
 
-// Job status
 enum JobStatus {
   ACTIVE
   CLOSED
 }
 
-// User table (for both admins and students)
-model User {
-  id                           Int       @id @default(autoincrement())
-  name                         String?
-  email                        String    @unique
-  passwordHash                 String
-  role                         UserRole
-  isVerified                   Boolean   @default(false)
-  emailVerificationToken       String?
-  emailVerificationTokenExpiry DateTime?
-  createdAt                    DateTime  @default(now())
-  updatedAt                    DateTime  @updatedAt
-
-  // Relations
-  student Student?
-
-  // For refresh tokens (optional)
-  tokens Token[]
-
-  @@map("users")
+enum CollegeStatus {
+  ACTIVE
+  PENDING
+  REJECTED
 }
 
-// College table
-model College {
-  id        Int      @id @default(autoincrement())
-  name      String
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  students Student[]
-  jobs     Job[]
-
-  @@map("colleges")
-}
-
-// Student table (linked to User and College)
-model Student {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id])
-  college   College  @relation(fields: [collegeId], references: [id])
-  collegeId Int
-  profile   Json? // For additional profile fields (flexible)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  applications Application[]
-
-  @@map("students")
-}
-
-// Job table
-model Job {
-  id           Int       @id @default(autoincrement())
-  college      College   @relation(fields: [collegeId], references: [id])
-  collegeId    Int
-  title        String
-  description  String
-  requirements String?
-  location     String?
-  status       JobStatus @default(ACTIVE)
-  postedAt     DateTime  @default(now())
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  // Relations
-  applications Application[]
-
-  @@index([collegeId])
-  @@map("jobs")
-}
-
-// Application table
-model Application {
-  id        Int               @id @default(autoincrement())
-  job       Job               @relation(fields: [jobId], references: [id])
-  jobId     Int
-  student   Student           @relation(fields: [studentId], references: [id])
-  studentId Int
-  resumeUrl String?
-  status    ApplicationStatus @default(APPLIED)
-  appliedAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  @@unique([jobId, studentId])
-  @@index([studentId])
-  @@map("applications")
-}
-
-// Token table (for refresh tokens, optional but recommended)
-model Token {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@map("tokens")
+enum AdminApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
