@@ -1,5 +1,11 @@
 # YuvaHire Job Portal
 
+## 🎬 Project Demo
+
+[**Watch the Demo Video**](https://www.loom.com/share/ffb52a3f4f7c4c63946657d7db802e7b)
+
+> This project is available as a public GitHub repository at: [github.com/sagar-1m/YuvaHire-Job-Portal](https://github.com/sagar-1m/YuvaHire-Job-Portal)
+
 ## Overview
 
 YuvaHire is a comprehensive job portal designed for educational institutions where college administrators can post job opportunities and students can apply to them. This implementation fulfills all the requirements of the assignment with additional features for enhanced functionality.
