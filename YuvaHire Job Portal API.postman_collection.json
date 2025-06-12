@@ -1,0 +1,1064 @@
+{
+	"info": {
+		"_postman_id": "e30aab52-0b5c-4ec0-84bc-c92de1297908",
+		"name": "YuvaHire Job Portal API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36637109"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Registration",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Transfer Student\",\r\n  \"email\": \"transfer@yuvahire.com\",\r\n  \"password\": \"Student@123\",\r\n  \"role\": \"STUDENT\",\r\n  \"collegeId\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Email Verification",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/verify-email?token=dd5f2dcf1d54a23b409a39e3b0128b77f18f777b5e9e7f7f41c2e210215c0276",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"verify-email"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "dd5f2dcf1d54a23b409a39e3b0128b77f18f777b5e9e7f7f41c2e210215c0276"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resend verification Email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"student@ecm.edu\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/resend-verification",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"resend-verification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"student@enggcollege.edu\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/forgot-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"token\": \"81288256d6ccf122abcc58c73dbf311035359279560f8c440c14635860a82160\",\r\n  \"password\": \"NewP@ssw0rd1\",\r\n  \"confirmPassword\": \"NewP@ssw0rd1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/reset-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/me",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test script for refresh token endpoint - automatically saves access token\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Check if token refresh was successful\r",
+									"if (pm.response.code === 200 && response.statusCode === 200 && response.message && response.message.accessToken) {\r",
+									"    // Extract the access token\r",
+									"    const accessToken = response.message.accessToken;\r",
+									"    \r",
+									"    // Save token to environment variable\r",
+									"    pm.environment.set(\"accessToken\", accessToken);\r",
+									"    \r",
+									"    // Set authorization header for subsequent requests\r",
+									"    pm.environment.set(\"authHeader\", \"Bearer \" + accessToken);\r",
+									"    \r",
+									"    // Preserve the current user role from environment\r",
+									"    const userRole = pm.environment.get(\"userRole\");\r",
+									"    \r",
+									"    // Update role-specific token based on current role\r",
+									"    if (userRole === \"SUPER_ADMIN\") {\r",
+									"        pm.environment.set(\"superAdminToken\", accessToken);\r",
+									"        console.log(\"✅ Super Admin token refreshed!\");\r",
+									"    } else if (userRole === \"ADMIN\") {\r",
+									"        pm.environment.set(\"adminToken\", accessToken);\r",
+									"        console.log(\"✅ Admin token refreshed!\");\r",
+									"    } else if (userRole === \"STUDENT\") {\r",
+									"        pm.environment.set(\"studentToken\", accessToken);\r",
+									"        console.log(\"✅ Student token refreshed!\");\r",
+									"    }\r",
+									"    \r",
+									"    // Log success\r",
+									"    console.log(\"✅ Token refresh successful\");\r",
+									"    console.log(\"✅ New token saved to environment\");\r",
+									"    \r",
+									"    pm.test(\"Token successfully refreshed\", function() {\r",
+									"        pm.expect(accessToken).to.be.a('string');\r",
+									"        pm.expect(accessToken.length).to.be.greaterThan(10);\r",
+									"    });\r",
+									"} else {\r",
+									"    console.error(\"❌ Failed to extract token from response\");\r",
+									"    pm.test(\"Token refresh failed\", function() {\r",
+									"        pm.expect(response.success).to.be.true;\r",
+									"        pm.expect(response.message).to.have.property(\"accessToken\");\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/refresh-token",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Clear access token after logout\r",
+									"pm.environment.set(\"accessToken\", \"\");\r",
+									"pm.environment.set(\"authHeader\", \"\");\r",
+									"console.log(\"✅ Access token cleared after logout\");\r",
+									"\r",
+									"pm.test(\"Tokens cleared after logout\", function() {\r",
+									"    pm.expect(pm.environment.get(\"accessToken\")).to.equal(\"\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/logout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test script for login endpoint - automatically saves access token\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Check if login was successful\r",
+									"if (pm.response.code === 200 && response.statusCode === 200 && response.message && response.message.accessToken) {\r",
+									"    // Extract the access token and user information\r",
+									"    const accessToken = response.message.accessToken;\r",
+									"    const user = response.message.user;\r",
+									"    \r",
+									"    // Save token to environment variable\r",
+									"    pm.environment.set(\"accessToken\", accessToken);\r",
+									"    \r",
+									"    // Set authorization header for subsequent requests\r",
+									"    pm.environment.set(\"authHeader\", \"Bearer \" + accessToken);\r",
+									"    \r",
+									"    // Save user information\r",
+									"    if (user) {\r",
+									"        pm.environment.set(\"userId\", user.id);\r",
+									"        pm.environment.set(\"userRole\", user.role);\r",
+									"        \r",
+									"        // Save role-specific token\r",
+									"        if (user.role === \"SUPER_ADMIN\") {\r",
+									"            pm.environment.set(\"superAdminToken\", accessToken);\r",
+									"            console.log(\"✅ Super Admin token saved!\");\r",
+									"        } else if (user.role === \"ADMIN\") {\r",
+									"            pm.environment.set(\"adminToken\", accessToken);\r",
+									"            console.log(\"✅ Admin token saved!\");\r",
+									"        } else if (user.role === \"STUDENT\") {\r",
+									"            pm.environment.set(\"studentToken\", accessToken);\r",
+									"            console.log(\"✅ Student token saved!\");\r",
+									"        }\r",
+									"    }\r",
+									"    \r",
+									"    // Log success\r",
+									"    console.log(\"✅ Authentication successful\");\r",
+									"    console.log(\"✅ Token saved to environment\");\r",
+									"    \r",
+									"    pm.test(\"Token successfully saved\", function() {\r",
+									"        pm.expect(accessToken).to.be.a('string');\r",
+									"        pm.expect(accessToken.length).to.be.greaterThan(10);\r",
+									"    });\r",
+									"} else {\r",
+									"    console.error(\"❌ Failed to extract token from response\");\r",
+									"    pm.test(\"Token extraction failed\", function() {\r",
+									"        pm.expect(response.success).to.be.true;\r",
+									"        pm.expect(response.message).to.have.property(\"accessToken\");\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"admin@enggcollege.edu\",\r\n  \"password\": \"Admin@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Setup for SUPER ADMIN",
+			"item": [
+				{
+					"name": "Initial System Setup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"adminName\": \"System Admin\",\r\n  \"adminEmail\": \"system@yuvahire.com\",\r\n  \"adminPassword\": \"Admin@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/setup/init",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"setup",
+								"init"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ADMIN Applications",
+			"item": [
+				{
+					"name": "Submit Admin Application",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"adminName\": \"College Admin\",\r\n  \"adminEmail\": \"admin@enggcollege.edu\",\r\n  \"adminPassword\": \"Admin@123\",\r\n  \"collegeName\": \"Engineering College\",\r\n  \"collegeLocation\": \"Mumbai\",\r\n  \"collegeWebsite\": \"https://enggcollege.edu\",\r\n  \"allowedEmailDomain\": \"@enggcollege.edu\",\r\n  \"adminPosition\": \"Placement Officer\",\r\n  \"verificationDocumentUrl\": \"https://example.com/verification.pdf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin-applications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin-applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all Admin Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer ",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/admin-applications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin-applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Review Admin Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"applicationId\": 1,\r\n  \"decision\": \"APPROVE\",\r\n  \"comments\": \"Application approved. College and admin credentials verified.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin-applications/review",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin-applications",
+								"review"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Students",
+			"item": [
+				{
+					"name": "List Available Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all Students of college",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/students",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"students"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Student Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/students/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"students",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign student to college",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/students/2/assign",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"students",
+								"2",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Student email by admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/students/1/verify",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"students",
+								"1",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Colleges",
+			"item": [
+				{
+					"name": "List all Colleges",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/colleges",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"colleges"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get College Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/colleges/2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"colleges",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update College Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Engineering College\",\r\n  \"location\": \"Mumbai - Andheri\",\r\n  \"website\": \"https://enggcollege.edu\",\r\n  \"address\": \"123 Education Street, Andheri, Mumbai 400053\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/colleges/2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"colleges",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Marketing Intern\",\r\n  \"description\": \"Looking for a marketing intern to help with digital campaigns.\",\r\n  \"requirements\": \"Knowledge of social media marketing, analytics tools.\",\r\n  \"location\": \"Mumbai, Remote\",\r\n  \"expiresAt\": \"2025-09-30T23:59:59Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/jobs",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs?collegeId=2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "collegeId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Job details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Senior Software Engineer Intern\",\r\n  \"description\": \"We're looking for passionate software engineering interns with knowledge of JavaScript and modern frameworks.\",\r\n  \"requirements\": \"Knowledge of JavaScript, React, Node.js, and TypeScript. Good problem-solving skills.\",\r\n  \"location\": \"Mumbai, Hybrid\",\r\n  \"expiresAt\": \"2025-09-30T23:59:59Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Job Applications",
+			"item": [
+				{
+					"name": "Apply for Job with job ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"resumeUrl\": \"https://example.com/resume.pdf\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/1/apply",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"1",
+								"apply"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Student Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/applications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/1/applications",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"1",
+								"applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Application Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"status\": \"UNDER_REVIEW\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/jobs/1/applications/1/status",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"jobs",
+								"1",
+								"applications",
+								"1",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
