@@ -7,6 +7,15 @@ import morgan from "morgan";
 import logger from "./config/logger.js";
 import ApiError from "./utils/ApiError.js";
 
+// Import routes
+import authRoutes from "./routes/authRoutes.js";
+import collegeRoutes from "./routes/collegeRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import jobRoutes from "./routes/jobRoutes.js";
+import setupRoutes from "./routes/setupRoutes.js";
+import adminApplicationRoutes from "./routes/adminApplicationRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+
 const app = express();
 
 // Middleware
@@ -41,6 +50,15 @@ app.get("/", (req, res) => {
     version: "1.0.0",
   });
 });
+
+// Mount routes
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/colleges", collegeRoutes);
+app.use("/api/v1/admins", adminRoutes);
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/setup", setupRoutes);
+app.use("/api/v1/admin-applications", adminApplicationRoutes);
+app.use("/api/v1/students", studentRoutes);
 
 // Catch-all route for undefined routes
 app.all("*", (req, res, next) => {
